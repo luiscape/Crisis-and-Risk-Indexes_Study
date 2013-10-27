@@ -8,7 +8,10 @@ Here I am studying crisis and risk indexes using R. I have selected four crisis 
   3. OCHA's Global Focus Model 
   4. ECHO's upcoming InfoRM (based on the Global Focus Model). 
 
-At this time I just downloaded the databases from the original sources and standardized the country names using the R package 'countrycodes' (https://github.com/vincentarelbundock/countrycode). 
+At this time I just downloaded the databases from the original sources and standardized the country names using the R package `countrycode` (https://github.com/vincentarelbundock/countrycode). 
 
 
-* Resource List * 
+Resource List  
+----------------
+
+(references should go here).
