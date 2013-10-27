@@ -1,4 +1,4 @@
-Crisis-and-Risk-Indexes_Study
+Crisis and Risk Index Study
 =============================
 
 Here I am studying crisis and risk indexes using R. I have selected four crisis indexes: 
