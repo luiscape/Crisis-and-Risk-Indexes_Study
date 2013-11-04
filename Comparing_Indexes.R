@@ -1,41 +1,49 @@
+# Set working directoty locally. 
+setwd("~/Documents/Programming/Crisi-and-Risk-Indexes_Study")
+
+# Renaming the col from ISO3 to iso3. 
+colnames(inform)[1] <- "iso3"
+
 #### Comparing Humanitarian and Risk Indexes. ####
 library(ggplot2)
 library(WDI)
 library(countrycode)
 
-#### Comparison of the year 2013 ####
+#### Todo ####
+# 1. Get the whole data from inform not only the risk index. 
 
+
+#### Loading four datasets. ####
+
+echo <- read.csv("data/echo_gna_index.csv", header=T)
+gfm <- read.csv("data/global_focus_model_2013.csv", header=T)
 inform <- read.csv("data/inform_risk_index_2013.csv", header=T)
-echo_crisis <- read.csv("data/echo_gna_crisis_index.csv", header=T)
-echo_vulnerability <- read.csv("data/echo_hna_vulnerability.csv", header=T)
-gfm <- read.csv("data/gfm_2013.csv", header=T)
-unu <- read.csv("data/UNU_World_Index.csv", header=T)
+unu <- read.csv("data/unu_world_risk_index.csv", header=T)
 
 
-#### Adding ISO3 Numbers to all databases. 
+#### Adding ISO3 Numbers to all datasets. ####
 
 iso3 <- countrycode(gfm$Country, "country.name", "iso3c")
-iso3 <- countrycode(unu$Country, "country.name", "iso3c")
-unu <- cbind(iso3,unu)
+gfm <- cbind(iso3,gfm)
 
 
-#### Making the same plot (and correlations) available in the World Humanitarian Data Report. #### 
+#### Creating comarable data.frame based on iso3 codes. ####
+
+data <- merge(echo, gfm, by='iso3')
+data <- merge(data, inform, by='iso3')
+data <- merge(data, unu, by='iso3')
+
+
+#### Plotting ####
 
 
 ## GFM and InfoRM ## 
-
-gfm_new <- subset(gfm, gfm$iso3, gfm$Focus)
-
-write.csv(inform, file="inform_with_iso3.csv", row.names=FALSE)
-write.csv(gfm, file="gfm_with_iso3.csv", row.names=FALSE)
+cor(data$RISK, data$Risk, use="pairwise.complete.obs") ## 0.87
 
 
-cor(gfm_inform$InfoRM.Risk.Index, gfm_inform$Focus, use="pairwise.complete.obs") ## 0.902207
-
-
-## Scatterplot that uses colors to separate groups. 
-ggplot(gfm_inform, aes(x=InfoRM.Risk.Index, y=Focus)) + 
-  geom_text(aes(label=ISO3), 
+## Scatterplot that uses colors to separate groups. Both the InfoRM and the GFM have similar numbers, presenting a correlation of 0.87. Could this indicate that the private datasets held by Mapplecroft weren't as valuable as we originally thought? 
+ggplot(data, aes(x=RISK, y=Risk)) + 
+  geom_text(aes(label=iso3), 
             size = 2.5, fontface = "bold",
             vjust = 0,
             color = "grey",
@@ -53,60 +61,99 @@ ggplot(gfm_inform, aes(x=InfoRM.Risk.Index, y=Focus)) +
            fontface = "italic", 
            size = 4
            ) 
-  
 
-cor(gfm_inform$Vulnerability.Index, gfm_inform$Vulnerability, use="pairwise.complete.obs") ## 0.8474009
+## Plot 2 - UNU vs. InfoRM
 
-ggplot(gfm_inform, aes(x=Vulnerability.Index, y=Vulnerability)) + 
-  geom_point() + 
-  geom_text(aes(label=ISO3), 
-            size = 2.5,
-            vjust = 0,
-            position = position_jitter(w = 0.5, h = 0.5)
-  ) + 
-  stat_smooth(method="lm", se=FALSE) + 
-  labs(x = "Global Focus Model 2013 / Vulnerability", y = "InfoRM 2013 / Vulnerability Index") + 
-  theme_bw()
+cor(data$WorldRiskIndex, data$Risk, use='pairwise.complete.obs') ## 0.1744695
 
-
-
-
-cor(echo_crisis$GNA.Crisis.Index, echo_vulnerability$GNA.Vulnerability.Index, use="pairwise.complete.obs") ## 0.3115115
-
-cor(gfm$Focus, inform$InfoRM.Risk.Index, use="pairwise.complete.obs") ## Not working -- check data. 
-
-qqplot(gfm$Focus, inform$InfoRM.Risk.Index, na.rm = TRUE) + geom_point()
-
-
-
-
-
-#### Comparing GNA and UNU World Risk Index #### 
-
-cor(gna_unu$WorldRiskIndex, gna_unu$GNA.Vulnerability.Index) ## R (correlation) = 0.08082911
-
-cor(gna_unu$Vulnerability, gna_unu$GNA.Vulnerability.Index) ## R (correlation) = 0.7935976
-
-cor(echo_unu$WorldRiskIndex, echo_unu$GNA.Final.Index) ## R (correlation) = -0.06607858
-
-ggplot(echo_unu, aes(x=GNA.Final.Index, y=WorldRiskIndex)) + 
+ggplot(data, aes(x=WorldRiskIndex, y=Risk)) + 
   geom_text(aes(label=iso3), 
             size = 2.5, fontface = "bold",
             vjust = 0,
             color = "grey",
             position = position_jitter(w = 0.4, h = 0.4)) + 
-  # stat_smooth(method="lm", se=FALSE) + 
-  geom_point(aes(color=WorldRiskIndex, size=2)) + 
-  labs(x = "GNA Final Index", 
-       y = "UNU World Risk Index", 
-       title = "ECHO GNA vs. UNU"
+  stat_smooth(method="lm", se=FALSE) + 
+  geom_point(aes(color=Region, size=Focus)) + 
+  labs(x = "UNU World Risk Index", 
+       y = "InfoRM 2013", 
+       title = "GFM vs. InfoRM (2013)"
   ) + 
   annotate("text", 
-           x = 3, 
-           y = 30, 
-           label = "R (correlation) = -0.67", 
+           x = 26, 
+           y = 7, 
+           label = "R (correlation) = 0.8", 
            fontface = "italic", 
            size = 4
   ) 
 
 
+## Plot 2 - UNU vs. InfoRM
+
+cor(data$GNA.Final.Index, data$Risk, use='pairwise.complete.obs') ## -0.04482483
+
+ggplot(data, aes(x=GNA.Final.Index, y=Risk)) + 
+  geom_text(aes(label=iso3), 
+            size = 2.5, fontface = "bold",
+            vjust = 0,
+            color = "grey",
+            position = position_jitter(w = 0.4, h = 0.4)) + 
+  stat_smooth(method="lm", se=FALSE) + 
+  geom_point(aes(color=Region, size=Focus)) + 
+  labs(x = "ECHO GNA Risk Index", 
+       y = "InfoRM 2013", 
+       title = "GFM vs. InfoRM (2013)"
+  ) + 
+  annotate("text", 
+           x = 26, 
+           y = 7, 
+           label = "R (correlation) = 0.8", 
+           fontface = "italic", 
+           size = 4
+  ) 
+
+## Plot 3 - UNU vs. GFM
+
+cor(data$GNA.Final.Index, data$Risk, use='pairwise.complete.obs') ## -0.04482483
+
+ggplot(data, aes(x=GNA.Final.Index, y=RISK)) + 
+  geom_text(aes(label=iso3), 
+            size = 2.5, fontface = "bold",
+            vjust = 0,
+            color = "grey",
+            position = position_jitter(w = 0.4, h = 0.4)) + 
+  stat_smooth(method="lm", se=FALSE) + 
+  geom_point(aes(color=Region, size=Focus)) + 
+  labs(x = "ECHO GNA Risk Index", 
+       y = "GFM", 
+       title = "ECHO GNA vs. GFM (2013)"
+  ) + 
+  annotate("text", 
+           x = 26, 
+           y = 7, 
+           label = "R (correlation) = ###", 
+           fontface = "italic", 
+           size = 4
+  ) 
+
+  
+## Plot 4 - UNU vs. InfoRM
+
+ggplot(data, aes(x=WorldRiskIndex, y=RISK)) + 
+  geom_text(aes(label=iso3), 
+            size = 2.5, fontface = "bold",
+            vjust = 0,
+            color = "grey",
+            position = position_jitter(w = 0.4, h = 0.4)) + 
+  stat_smooth(method="lm", se=FALSE) + 
+  geom_point(aes(color=Region, size=Focus)) + 
+  labs(x = "ECHO GNA Risk Index", 
+       y = "GFM", 
+       title = "GFM vs. InfoRM (2013)"
+  ) + 
+  annotate("text", 
+           x = 26, 
+           y = 7, 
+           label = "R (correlation) = ###", 
+           fontface = "italic", 
+           size = 4
+  ) 
