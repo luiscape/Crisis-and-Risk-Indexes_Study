@@ -1,9 +1,6 @@
 # Set working directoty locally. 
 setwd("~/Documents/Programming/Crisi-and-Risk-Indexes_Study")
 
-# Renaming the col from ISO3 to iso3. 
-colnames(inform)[1] <- "iso3"
-
 #### Comparing Humanitarian and Risk Indexes. ####
 library(ggplot2)
 library(WDI)
@@ -13,19 +10,17 @@ library(countrycode)
 # 1. Get the whole data from inform not only the risk index. 
 
 
-#### Loading four datasets. ####
+#### Loading data. ####
 
 echo <- read.csv("data/echo_gna_index.csv", header=T)
 gfm <- read.csv("data/global_focus_model_2013.csv", header=T)
 inform <- read.csv("data/inform_risk_index_2013.csv", header=T)
 unu <- read.csv("data/unu_world_risk_index.csv", header=T)
 
+colnames(inform)[1] <- "iso3" # Renaming the col from ISO3 to iso3. 
 
-#### Adding ISO3 Numbers to all datasets. ####
-
-iso3 <- countrycode(gfm$Country, "country.name", "iso3c")
-gfm <- cbind(iso3,gfm)
-
+iso3 <- countrycode(gfm$Country, "country.name", "iso3c") # Coding into ISO3. 
+gfm <- cbind(iso3, gfm) # Adding the column to the data.frame.
 
 #### Creating comarable data.frame based on iso3 codes. ####
 
@@ -35,7 +30,6 @@ data <- merge(data, unu, by='iso3')
 
 
 #### Plotting ####
-
 
 ## GFM and InfoRM ## 
 cor(data$RISK, data$Risk, use="pairwise.complete.obs") ## 0.87
